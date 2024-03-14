@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+	<AddIn Type="Command">
+		<Assembly>.\ObjectCollisionDetection.dll</Assembly>
+		<AddInId>568BA4ED-033B-4CA2-84E7-26F3CC63EF39</AddInId>
+		<FullClassName>ObjectCollisionDetection.Class1</FullClassName>
+		<Text>getObjectCollisionInfo</Text>
+		<VendorId>Object</VendorId>
+		<VendorDescription>You are getting the information about the objects if they are collides with each other</VendorDescription>
+	</AddIn>
+</RevitAddIns>
