@@ -1,4 +1,4 @@
-﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
@@ -21,9 +21,11 @@ namespace ObjectCollisionDetection
                 UIDocument uidoc = commandData.Application.ActiveUIDocument;
                 Document doc = uidoc.Document;
 
+                //Collecting IDs of family-instances loaded by us like furniture or other objects
                 FilteredElementCollector collector1 = new FilteredElementCollector(doc);
                 ICollection<ElementId> familyInstanceElement = collector1.OfClass(typeof(FamilyInstance)).ToElementIds();
 
+                //Collecting id of floor to remove from the objects need to be check for collision
                 FilteredElementCollector collector2 = new FilteredElementCollector(doc);
                 ICollection<ElementId> floorId = collector2.OfClass(typeof(Floor)).ToElementIds();
 
@@ -32,22 +34,32 @@ namespace ObjectCollisionDetection
 
                 List<ElementId> elementIds = new List<ElementId>();
 
+                //It takes the elements one by one and check for the collision occurs or not
                 foreach (ElementId familyInstanceId in familyInstanceElement)
                 {
                     if (!elementIds.Contains(familyInstanceId))
                     {
                         Element familyInstance = doc.GetElement(familyInstanceId);
-                        BoundingBoxXYZ boundingBoxXYZ = familyInstance.get_BoundingBox(doc.ActiveView);
 
+                        //Taking the boundingbox for collision detection
+                        BoundingBoxXYZ boundingBoxXYZ = familyInstance.get_BoundingBox(doc.ActiveView);
                         Outline outline = new Outline(boundingBoxXYZ.Min, boundingBoxXYZ.Max);
+
+                        //Creating filter of collision detection
                         BoundingBoxIntersectsFilter boundingBoxIntersectsFilter = new BoundingBoxIntersectsFilter(outline);
+
+                        //Getting all elements except floor
                         FilteredElementCollector filterElements = new FilteredElementCollector(doc, doc.ActiveView.Id).Excluding(floorId);
+
                         ICollection<ElementId> currentElement = new List<ElementId>();
                         currentElement.Add(familyInstanceId);
+
+                        //Excluding current element and apply filter of collision
                         filterElements.Excluding(currentElement).WherePasses(boundingBoxIntersectsFilter);
 
                         foreach (Element intersectingElement in filterElements)
                         {
+                            //Checks whether the object is close to wall or not
                             if (intersectingElement.Category.Name == "Walls")
                             {
                                 ++count;
@@ -55,6 +67,7 @@ namespace ObjectCollisionDetection
                             }
                             else
                             {
+                                //Adding note if object collide with each other
                                 elementIds.Add(intersectingElement.Id);
                                 ++count;
                                 collisionReport += $"{count}. (ID: {familyInstance.Id}) and (ID: {intersectingElement.Id})\n";
